@@ -1,89 +1,107 @@
-window.addEventListener('load',function () {
-    let canvas=document.querySelector('canvas');
-    let shape=document.querySelectorAll('.shape>li');
-    let option=document.querySelectorAll('.option>li');
-    let style=document.querySelectorAll('.style>li');
-    let FillcolorSelect=document.querySelector('#FillcolorSelect');
-    let StrokecolorSelect=document.querySelector('#StrokecolorSelect');
-    let palette=new Palette(canvas);
-    option.forEach(element=>{
-        element.onclick=function () {
-            let type=this.id;
-            option.forEach(obj=>{obj.classList.remove('active')});
+window.addEventListener('load', function () {
+    let canvas = document.querySelector('canvas');
+    let shape = document.querySelectorAll('.shape>li');
+    let option = document.querySelectorAll('.option>li');
+    let style = document.querySelectorAll('.styleBtn');
+    let colorstyle = document.querySelectorAll('.colorstyle');
+    let lineWidth = document.querySelector('input[type=number]');
+    let lineCap = document.querySelector('select');
+    let mask = document.querySelector('.mask');
+    let eraser = document.querySelector('.eraser');
+    // lineCap.forEach(element=>{
+    //     console.log(element);
+    //    element.onchange=function () {
+    //        console.log(this.value);
+    //    }
+    // });
+    lineCap.onchange = function () {
+        palette.lineCap = this.value;
+    };
+    lineWidth.onchange = function () {
+        palette.lineWidth = this.value;
+    };
+    let palette = new Palette(mask, canvas);
+    option.forEach(element => {
+        element.onclick = function () {
+            let type = this.id;
+            option.forEach(obj => {
+                obj.classList.remove('active')
+            });
             this.classList.add('active');
-            if (type=='back'){
+            if (type == 'back') {
                 palette.back();
             }
-            if (type=='clear'){
+            if (type == 'clear') {
                 palette.clear();
             }
-            if(type=='newCanvas'){
+            if (type == 'newCanvas') {
                 // confirm('你确定要删除当前画板，新建画板么？');
-                if (confirm('你确定要删除当前画板，新建画板么？')){
-                    let w=parseInt(prompt('请输入画板宽度'));
-                    let h=parseInt(prompt('请输入画板高度'));
-                    document.querySelector('section').innerHTML='';
-                    canvas=document.createElement('canvas');
-                    canvas.width=w;
-                    canvas.height=h;
-                    canvas.className='canvasStyle';
-                    document.querySelector('section').appendChild(canvas);
-                    palette=new Palette(canvas);
-                }else {
-                    let w=parseInt(prompt('请输入画板宽度'));
-                    let h=parseInt(prompt('请输入画板高度'));
-                    canvas=document.createElement('canvas');
-                    canvas.width=w;
-                    canvas.height=h;
-                    canvas.className='canvasStyle';
-                    document.querySelector('section').appendChild(canvas);
-                    palette=new Palette(canvas);
+                if (confirm('你确定要新建画板么？')) {
+                    let w = parseInt(prompt('请输入画板宽度'));
+                    let h = parseInt(prompt('请输入画板高度'));
+                    // document.querySelector('section').innerHTML = '';
+                    let section=document.querySelector('section');
+                    section.removeChild(canvas);
+                    canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    canvas.className = 'canvasStyle';
+                    section.insertBefore(canvas,section.firstElementChild);
+                    let mask = document.querySelector('.mask');
+                    palette = new Palette(mask, canvas);
+                    shape[0].onclick();
                 }
             }
+            if (type=='save'){
+                let type=prompt('保存为');
+                palette.save(type);
+            }
         }
     });
-    shape.forEach(element=>{
-        element.onclick=function () {
-            let type=this.id;
-            shape.forEach(obj=>{obj.classList.remove('active')});
+    shape.forEach(element => {
+        element.onclick = function () {
+            let type = this.id;
+            shape.forEach(obj => {
+                obj.classList.remove('active')
+            });
             this.classList.add('active');
-            if (type=='ploy'||type=='ployJ'){
-                let num=parseInt(prompt('请输入边数或者角的数量'));
-                palette[type](num);
-            }else {
+            if (type == 'ploy' || type == 'ployJ') {
+                let num = parseInt(prompt('请输入边数或者角的数量'));
+                palette.draw(type, num);
+            } else if (type == 'pencil') {
                 palette[type]();
+            } else if (type == 'eraser') {
+                let w = parseInt(prompt('请指定橡皮的大小'));
+                palette[type](eraser, w);
+                console.log(type);
+            } else {
+                palette.draw(type);
             }
-
         }
     });
-    FillcolorSelect.onchange=function () {
-        let color=this.value;
-        palette.color=color;
-    };
-    StrokecolorSelect.onchange=function () {
-        let color=this.value;
-        palette.color=color;
-    };
-    style.forEach(element=>{
-        element.onclick=function () {
-            let type=this.id;
-            style.forEach(obj=>{obj.classList.remove('active')});
+    shape[0].onclick();
+    colorstyle.forEach(element => {
+        element.onchange = function () {
+            palette[this.id] = this.value;
+        }
+    });
+    style.forEach(element => {
+        element.onclick = function () {
+            style.forEach(obj => {
+                obj.classList.remove('active')
+            });
             this.classList.add('active');
-            if (type=='fill'){
-                palette.style='fill';
-            }else if(type=='stroke') {
-                palette.style='stroke';
-            }
-
+            palette.style = this.id;
         }
     });
+    style[1].onclick();
     // 撤销
-    window.onkeydown=function (e) {
-        if (e.ctrlKey && e.key=='z'){
-            if (palette.history.length){
+    window.onkeydown = function (e) {
+        if (e.ctrlKey && e.key == 'z') {
+            if (palette.history.length) {
                 palette.history.pop();
-                if (palette.history.length>0){
-                    palette.ctx.putImageData(palette.history[palette.history.length-1],0,0);
+                if (palette.history.length > 0) {
+                    palette.ctx.putImageData(palette.history[palette.history.length - 1], 0, 0);
                 }
             }
         }
