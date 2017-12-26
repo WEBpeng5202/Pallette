@@ -41,7 +41,7 @@ header .shape {
 }
 
 header .style {
-    width: 220px;
+    width: 275px;
     border-right: 2px dashed rgba(125, 149, 255, 0.55);
 }
 
@@ -106,7 +106,7 @@ select {
     position: absolute;
     top: 0;
     left: 0;
-    z-index:9999;
+    z-index: 9999;
 }
 
 .eraser {
@@ -117,4 +117,15 @@ select {
     top: 0;
     background-color: #e6e6e6;
     display: none;
+}
+
+.clip {
+    width: 100px;
+    height: 100px;
+    border: 1px dashed #8c8c8c;
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: none;
+    z-index: 99;
 }

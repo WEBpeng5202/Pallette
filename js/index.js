@@ -8,6 +8,9 @@ window.addEventListener('load', function () {
     let lineCap = document.querySelector('select');
     let mask = document.querySelector('.mask');
     let eraser = document.querySelector('.eraser');
+    let fontBtn = document.querySelector('.fontBtn');
+    let clipBtn = document.querySelector('.clipBtn');
+    let clip = document.querySelector('.clip');
     // lineCap.forEach(element=>{
     //     console.log(element);
     //    element.onchange=function () {
@@ -40,21 +43,24 @@ window.addEventListener('load', function () {
                     let w = parseInt(prompt('请输入画板宽度'));
                     let h = parseInt(prompt('请输入画板高度'));
                     // document.querySelector('section').innerHTML = '';
-                    let section=document.querySelector('section');
+                    let section = document.querySelector('section');
                     section.removeChild(canvas);
                     canvas = document.createElement('canvas');
                     canvas.width = w;
                     canvas.height = h;
                     canvas.className = 'canvasStyle';
-                    section.insertBefore(canvas,section.firstElementChild);
+                    section.insertBefore(canvas, section.firstElementChild);
                     let mask = document.querySelector('.mask');
                     palette = new Palette(mask, canvas);
                     shape[0].onclick();
                 }
             }
-            if (type=='save'){
-                let type=prompt('保存为');
-                palette.save(type);
+            if (type == 'save') {
+                let type = prompt('保存为');
+                let save=document.querySelector('#save>a');
+                // palette.save(type);
+                save.href=palette.canvas.toDataURL('image/png');
+                save.download='1.png';
             }
         }
     });
@@ -91,10 +97,18 @@ window.addEventListener('load', function () {
                 obj.classList.remove('active')
             });
             this.classList.add('active');
-            palette.style = this.id;
+            palette.styles = this.id;
         }
     });
     style[1].onclick();
+    /////////////////////////////
+    fontBtn.addEventListener('click', function () {
+        palette.font();
+    });
+//////////////
+    clipBtn.addEventListener('click', function () {
+        palette.clip(clip);
+    });
     // 撤销
     window.onkeydown = function (e) {
         if (e.ctrlKey && e.key == 'z') {

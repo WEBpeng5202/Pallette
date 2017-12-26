@@ -8,9 +8,10 @@ class Palette {
         this.cw = this.canvas.width;
         this.ch = this.canvas.height;
         this.history = [];
-        this.style = 'stroke';
+        this.styles = 'stroke';
         this.lineWidth = 1;
         this.lineCap = 'butt';
+        this.temp = null;
     }
 
     _init() {
@@ -24,8 +25,7 @@ class Palette {
         this.ctx.beginPath();
         this.ctx.moveTo(ox, oy);
         this.ctx.lineTo(mx, my);
-        this.ctx[this.style]();
-        console.log(1);
+        this.ctx[this.styles]();
     }
 
     dash(ox, oy, mx, my) {
@@ -33,7 +33,7 @@ class Palette {
         this.ctx.setLineDash([3, 10]);
         this.ctx.moveTo(ox, oy);
         this.ctx.lineTo(mx, my);
-        this.ctx[this.style]();
+        this.ctx[this.styles]();
         this.ctx.setLineDash([0, 0]);
     }
 
@@ -50,7 +50,6 @@ class Palette {
                 if (that.history.length) {
                     that.ctx.putImageData(that.history[that.history.length - 1], 0, 0);
                 }
-                console.log(1);
                 that.ctx.lineTo(mx, my);
                 that.ctx.stroke();
 
@@ -67,13 +66,13 @@ class Palette {
         let r = Math.sqrt((mx - ox) ** 2 + (my - oy) ** 2);
         this.ctx.beginPath();
         this.ctx.arc(ox, oy, r, 0, Math.PI * 2);
-        this.ctx[this.style]();
+        this.ctx[this.styles]();
     }
 
     rect(ox, oy, mx, my) {
         let w = mx - ox, h = my - oy;
         this.ctx.beginPath();
-        this.ctx[this.style + 'Rect'](ox, oy, w, h);
+        this.ctx[this.styles + 'Rect'](ox, oy, w, h);
     }
 
     ploy(ox, oy, mx, my, num) {
@@ -96,7 +95,7 @@ class Palette {
             this.ctx.lineTo(x, y);
         }
         this.ctx.closePath();
-        this.ctx[this.style]();
+        this.ctx[this.styles]();
     }
 
     ployJ(ox, oy, mx, my, num) {
@@ -120,7 +119,7 @@ class Palette {
             }
             this.ctx.lineTo(x, y);
         }
-        this.ctx[this.style]();
+        this.ctx[this.styles]();
     };
 
     draw(type, num) {
@@ -158,10 +157,100 @@ class Palette {
         this.ctx.clearRect(0, 0, this.cw, this.ch);
     }
 
-    save(type){
-        let image=new Image();
-        image.src=this.canvas.toDataURL('image/'+type);
+    save(type) {
+        let image = new Image();
+        image.src = this.canvas.toDataURL('image/' + type);
         document.body.appendChild(image);
+    }
+
+    font() {
+        this.mask.ondblclick = function (e) {
+            this.mask.onmousedown = null;//处理问题：单击失去焦点时再次触发按钮的单击事件
+            let ox = e.offsetX, oy = e.offsetY;
+            let inputs = document.createElement('input');
+            inputs.style.cssText = `width:300px;height:30px;border:1px solid #000;position:absolute;left:${ox}px;top:${oy}px;`;
+            inputs.autoFocus = true;
+            this.mask.appendChild(inputs);
+            inputs.onblur = function () {
+                let ox = inputs.offsetLeft, oy = inputs.offsetTop;
+                let v = inputs.value;
+                this.ctx.font = '20px sans-serif';
+                this.ctx.fillText(v, ox, oy);
+                this.mask.removeChild(inputs);
+                inputs = null;
+            }.bind(this);//通过绑定函数bind()改变this指针
+
+            /////
+            inputs.onmousedown = function (e) {
+                let ox = e.clientX, oy = e.clientY;
+                let l = inputs.offsetLeft, t = inputs.offsetTop;
+                this.mask.onmousemove = function (e) {
+                    let mx = e.clientX, my = e.clientY;
+                    inputs.style.left = l + mx - ox + 'px';
+                    inputs.style.top = t + my - oy + 'px';
+                };
+                inputs.onmouseup = function () {
+                    this.mask.onmousemove = null;
+                }.bind(this);
+            }.bind(this);
+        }.bind(this);
+    }
+
+    clip(clip) {
+        let that = this;
+        this.mask.onmousedown = function (e) {
+            let ox = e.offsetX, oy = e.offsetY, minx, miny, w, h;
+            clip.style.display = 'block';
+            clip.style.left = ox + 'px';
+            clip.style.top = oy + 'px';
+            that.mask.onmousemove = function (e) {
+                let mx = e.offsetX, my = e.offsetY;
+                minx = ox < mx ? ox : mx;
+                miny = oy < my ? oy : my;
+                w = Math.abs(ox - mx);
+                h = Math.abs(oy - my);
+                console.log(minx, miny, w, h);
+                clip.style.width = w + 'px';
+                clip.style.height = h + 'px';
+                clip.style.left = minx + 'px';
+                clip.style.top = miny + 'px';
+                that.mask.onmouseup = function () {
+                    that.mask.onmousemove = null;
+                    that.mask.onmouseup = null;
+                    that.temp = that.ctx.getImageData(minx, miny, w, h);
+                    that.ctx.clearRect(minx, miny, w, h);
+                    that.history.push(that.ctx.getImageData(0, 0, that.cw, that.ch));
+                    that.ctx.putImageData(that.temp, minx, miny);
+                    that.drag(clip, minx, miny);
+                }
+            }
+        }
+    }
+
+    drag(obj, minx, miny) {
+        let that = this;
+        this.mask.onmousedown = function (e) {
+            let ox = e.offsetX, oy = e.offsetY;
+            that.mask.onmousemove = function (e) {
+                let mx = e.offsetX, my = e.offsetY;
+                let lefts = minx + mx - ox, tops = miny + my - oy;
+                obj.style.left = lefts + 'px';
+                obj.style.top = tops + 'px';
+                that.ctx.clearRect(0, 0, that.cw, that.ch);
+                if (that.history.length) {
+                    that.ctx.putImageData(that.history[that.history.length - 1], 0, 0)
+                }
+                that.ctx.putImageData(that.temp, lefts, tops);
+
+            };
+            that.mask.onmouseup = function () {
+                that.mask.onmousedown = null;
+                that.mask.onmousemove = null;
+                that.mask.onmouseup = null;
+                obj.style.display = 'none';
+                that.history.push(that.ctx.getImageData(0,0,that.cw,that.ch));
+            }
+        }
     }
 
     eraser(eraser, w) {

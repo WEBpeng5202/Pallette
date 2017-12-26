@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <link rel="stylesheet" href="https://at.alicdn.com/t/font_518663_sbs2k1eqi5uq5mi.css">
+    <link rel="stylesheet" href="http://at.alicdn.com/t/font_518663_sbs2k1eqi5uq5mi.css">
     <link rel="stylesheet" href="css/index.css">
     <script src="js/Palette.js"></script>
     <script src="js/index.js"></script>
@@ -12,7 +12,7 @@
 <header>
     <ul class="option">
         <li id="newCanvas">新建</li>
-        <li id="save">保存</li>
+        <li id="save"><a href="">保存</a></li>
         <li id="back">撤销</li>
         <li id="clear">清空</li>
     </ul>
@@ -31,6 +31,7 @@
         <li id="stroke" class="styleBtn">边框</li>
         <li>线宽</li>
         <li>线型</li>
+        <li id="font" class="fontBtn styleBtn">文字</li>
         <li><input type="color" id="fillStyle" class="colorstyle" value="#CCCCCC"></li>
         <li><input type="color" id="strokeStyle" class="colorstyle" value="#CCCCCC"></li>
         <li><input type="number" value="1"></li>
@@ -41,6 +42,7 @@
                 <option value="square">方形</option>
             </select>
         </li>
+        <li id="cilp" class="clipBtn styleBtn cilp">裁剪</li>
     </ul>
 
 </header>
@@ -48,6 +50,8 @@
     <canvas width="800" height="700"></canvas>
     <div class="eraser"></div>
     <div class="mask"></div>
+    <div class="clip">
+    </div>
 </section>
 </body>
 </html>
